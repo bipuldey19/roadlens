@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Distress Point Survey - Road Lens</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100">
+    <%- include('partials/navbar') %>
+
+    <!-- Image Popup Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 items-center justify-center p-4 opacity-0 transition-opacity duration-300" style="display: none;">
+        <div class="relative max-w-4xl w-full">
+            <button onclick="closeImageModal()" 
+                    class="absolute -top-4 -right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <img id="modalImage" src="" alt="Full size image" 
+                 class="w-full h-auto max-h-[90vh] object-contain rounded-lg shadow-2xl">
+        </div>
+    </div>
+
+    <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900">Road Distress Point Survey</h1>
+            <p class="mt-2 text-sm text-gray-600">Help us identify and track road conditions in your area</p>
+            </div>
+
+        <form id="surveyForm" class="space-y-8">
+            <!-- Main Content Card -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Survey Details</h2>
+                    <p class="text-sm text-gray-500 mb-6">Fill in the road and distress point information below</p>
+
+                    <!-- Road Information Section -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Column 1 -->
+                        <div class="space-y-6">
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Road Type</label>
+                                <select name="roadType" required 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Road Type</option>
+                                    <option value="Highway">Highway</option>
+                                    <option value="Main Road">Main Road</option>
+                                    <option value="Residential Road">Residential Road</option>
+                                    <option value="Market/Commercial Road">Market/Commercial Road</option>
+                                    <option value="Service/Private Road">Service/Private Road</option>
+                                    <option value="Rural Road">Rural Road</option>
+                                </select>
+                        </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Traffic Volume</label>
+                                <select name="trafficVolume" required 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Traffic Volume</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                    </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Distress Type</label>
+                                <select name="distressType" required 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Distress Type</option>
+                                    <option value="Pothole">Pothole</option>
+                                    <option value="Patching">Patching</option>
+                                    <option value="Raveling">Raveling</option>
+                                    <option value="Crack">Crack</option>
+                                    <option value="Edge Crack">Edge Crack</option>
+                            </select>
+                        </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Distress Area</label>
+                                <select name="distressArea" required 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Distress Area</option>
+                                    <option value="Small">Small</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Large">Large</option>
+                                </select>
+                    </div>
+                        </div>
+
+                        <!-- Column 2 -->
+                        <div class="space-y-6">
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Distress Severity</label>
+                                <select name="distressSeverity" required 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Severity</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Repair Urgency</label>
+                                <select name="repairUrgency" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Urgency</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Drainage Condition</label>
+                                <select name="drainageCondition" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Condition</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                                    </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Accident History</label>
+                                <select name="accidentHistory" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select History</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                    <option value="Unsure">Unsure</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div class="space-y-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Distress Image</label>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- File Upload -->
+                            <label class="cursor-pointer block">
+                                <input type="file" id="uploadInput" accept="image/*" class="hidden">
+                                <div class="relative flex justify-center items-center h-32 bg-gray-50 border-2 border-gray-300 border-dashed rounded-lg hover:bg-gray-100 transition-all duration-300">
+                                    <div class="absolute">
+                                        <div class="flex flex-col items-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                            <span class="block text-gray-500 font-normal">Upload</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Camera Capture (Mobile) -->
+                            <label class="cursor-pointer block md:hidden">
+                                <input type="file" id="captureInput" accept="image/*" capture="environment" class="hidden">
+                                <div class="relative flex justify-center items-center h-32 bg-gray-50 border-2 border-gray-300 border-dashed rounded-lg hover:bg-gray-100 transition-all duration-300">
+                                    <div class="absolute">
+                                        <div class="flex flex-col items-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                            <span class="block text-gray-500 font-normal">Capture</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                    </div>
+
+                        <!-- Image Preview -->
+                        <div id="previewContainer" class="hidden">
+                            <div class="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                                <div class="relative">
+                                    <img id="imagePreview" src="" alt="Preview" 
+                                         class="w-full h-64 object-contain rounded-lg">
+                                    <button id="clearButton" type="button"
+                                            class="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Info -->
+                        <div id="coordinatesContainer" class="hidden">
+                            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                                <div id="coordinatesLoading" class="flex items-center justify-center space-x-2">
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                    <div class="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                                    <span class="text-gray-700 font-medium">Getting location...</span>
+                                </div>
+                                <div id="coordinates" class="hidden space-y-2">
+                                    <div class="flex items-center text-gray-700">
+                                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <div>
+                                            <p class="font-medium">Location Details</p>
+                                            <p class="text-sm">Latitude: <span id="latitude" class="font-medium"></span></p>
+                                            <p class="text-sm">Longitude: <span id="longitude" class="font-medium"></span></p>
+                                            <p class="text-sm">Accuracy: <span id="accuracy" class="font-medium"></span> meters</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="coordinatesError" class="hidden">
+                                    <p class="text-red-500 flex items-center">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span id="cordErr"></span>
+                            </p>
+                        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button Section -->
+                <div class="px-8 py-4 bg-gray-50 border-t border-gray-200">
+                    <div class="flex justify-end">
+                        <button type="submit" 
+                                class="group relative flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled
+                                title="Please complete all required tasks">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Submit Survey</span>
+                    </button>
+                    </div>
+                </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="survey.js"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Dashboard - Road Lens</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <%- include('../partials/navbar') %>
+
+    <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Personal Information Card -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Evaluation Overview</h2>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Total Evaluations</p>
+                    <p class="font-medium"><%= evaluations.length %></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Pending Reviews</p>
+                    <p class="font-medium"><%= evaluations.filter(e => e.status === 'pending').length %></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Approved Surveyors</p>
+                    <p class="font-medium"><%= evaluations.filter(e => e.status === 'approved').length %></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile View: Cards -->
+        <div class="md:hidden space-y-4">
+            <% evaluations.forEach(eval => { %>
+                <div class="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200">
+                    <div class="mb-3">
+                        <h3 class="font-medium text-gray-900"><%= eval.full_name %></h3>
+                        <p class="text-sm text-gray-500">Age: <%= eval.age %></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-900"><%= eval.institution_name %></p>
+                        <p class="text-sm text-gray-500"><%= eval.institution_type.charAt(0).toUpperCase() + eval.institution_type.slice(1) %></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500"><%= eval.email %></p>
+                        <p class="text-sm text-gray-500"><%= eval.phone %></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="text-sm text-gray-500"><%= new Date(eval.created_at).toLocaleString() %></p>
+                    </div>
+                    <% if (eval.status === 'approved') { %>
+                        <div class="text-center bg-green-100 text-green-600 px-4 py-2 rounded-lg mt-3">
+                            Approved
+                        </div>
+                    <% } else if (eval.status === 'rejected') { %>
+                        <div class="text-center bg-red-100 text-red-600 px-4 py-2 rounded-lg mt-3">
+                            Rejected
+                        </div>
+                    <% } else { %>
+                        <a href="/admin/submission/<%= eval.id %>" 
+                           class="block text-center bg-blue-100 text-blue-600 hover:bg-blue-200 px-4 py-2 rounded-lg transition-colors">
+                            View Submission
+                        </a>
+                    <% } %>
+                </div>
+            <% }); %>
+        </div>
+
+        <!-- Desktop View: Table -->
+        <div class="hidden md:block">
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Evaluation Submissions</h2>
+                    <p class="text-sm text-gray-600 mb-4">Review and manage surveyor applications</p>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Institution</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <% evaluations.forEach(eval => { %>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900"><%= eval.full_name %></div>
+                                        <div class="text-sm text-gray-500">Age: <%= eval.age %></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900"><%= eval.institution_name %></div>
+                                        <div class="text-sm text-gray-500"><%= eval.institution_type.charAt(0).toUpperCase() + eval.institution_type.slice(1) %></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <%= eval.email %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <%= eval.phone %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <%= new Date(eval.created_at).toLocaleString() %>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <% if (eval.status === 'approved') { %>
+                                            <span class="bg-green-100 text-green-600 px-4 py-2 rounded-lg">
+                                                Approved
+                                            </span>
+                                        <% } else if (eval.status === 'rejected') { %>
+                                            <span class="bg-red-100 text-red-600 px-4 py-2 rounded-lg">
+                                                Rejected
+                                            </span>
+                                        <% } else { %>
+                                            <a href="/admin/evaluation-form/<%= eval.id %>" 
+                                               class="text-blue-600 hover:text-blue-900 bg-blue-100 px-4 py-2 rounded-lg">
+                                                View Submission
+                                            </a>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/footer') %>
+</body>
+</html> 

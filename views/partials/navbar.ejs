@@ -1,0 +1,114 @@
+<nav class="border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="text-2xl font-bold">
+                <img src="/assets/try2.svg" alt="Road Lens Logo" class="w-36">
+            </a>
+
+            <!-- Navigation -->
+            <div class="relative">
+                <% if (locals.userEmail) { %>
+                    <!-- Surveyor Navigation -->
+                    <button id="avatarButton" 
+                            class="flex items-center space-x-3 focus:outline-none"
+                            onclick="toggleDropdown()">
+                        <img src="<%= generateAvatarUrl(userEmail) %>" 
+                             alt="Avatar" 
+                             class="w-8 h-8 rounded-full border border-gray-200"
+                        />
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+
+                    <!-- Surveyor Dropdown Menu -->
+                    <div id="avatarDropdown" 
+                         class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 hidden">
+                        <a href="/survey" 
+                           class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                            New Survey
+                        </a>
+                        <a href="/my-surveys" 
+                           class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                            My Surveys
+                        </a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <a href="/logout" 
+                           class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+                            Log Out
+                        </a>
+                    </div>
+                <% } else if (locals.adminEmail) { %>
+                    <!-- Admin Navigation -->
+                    <button id="avatarButton" 
+                            class="flex items-center space-x-3 focus:outline-none"
+                            onclick="toggleDropdown()">
+                        <img src="<%= generateAvatarUrl(adminEmail) %>" 
+                             alt="Avatar" 
+                             class="w-8 h-8 rounded-full border border-gray-200"
+                        />
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+
+                    <!-- Admin Dropdown Menu -->
+                    <div id="avatarDropdown" 
+                         class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 hidden">
+                         <a href="/admin/survey-dashboard" 
+                           class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                            Survey Dashboard
+                        </a>
+                        <a href="/admin/evaluation-dashboard" 
+                           class="block px-4 py-2 text-gray-700 hover:bg-gray-100 relative">
+                            <div class="flex items-center justify-between">
+                                <span>
+                                    Evaluation Dashboard
+                                </span>
+                                <% if (locals.newSubmissionsCount && newSubmissionsCount > 0) { %>
+                                    <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                        <%= newSubmissionsCount %>
+                                    </span>
+                                <% } %>
+                            </div>
+                        </a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <a href="/admin/logout" 
+                           class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+                            Log Out
+                        </a>
+                    </div>
+                <% } else { %>
+                    <!-- Public Navigation -->
+                    <div class="flex items-center space-x-4">
+                        <a href="/evaluation" 
+                           class="text-blue-600 hover:text-blue-800 font-medium">
+                            Join Us
+                        </a>
+                        <a href="/login"
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Log In
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+function toggleDropdown() {
+    const dropdown = document.getElementById('avatarDropdown');
+    dropdown.classList.toggle('hidden');
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function closeDropdown(e) {
+        const avatarButton = document.getElementById('avatarButton');
+        if (!avatarButton.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            document.removeEventListener('click', closeDropdown);
+        }
+    });
+}
+</script>
