@@ -7,6 +7,11 @@
     <link rel="icon" type="image/x-icon" href="../assets/favicon2.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <style>
         /* Prevent page shift when modal opens */
         body.modal-open {
@@ -26,6 +31,34 @@
         
         .modal-backdrop.active {
             opacity: 1;
+        }
+
+        /* Add these styles to the existing <style> section */
+        .resizable-map-container {
+            position: relative;
+            resize: vertical;
+            overflow: hidden;
+            height: 400px;
+            min-height: 300px;
+            max-height: 800px;
+            width: 100%;
+        }
+
+        .resizable-map-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 15px;
+            cursor: ns-resize;
+            background: linear-gradient(180deg, transparent 50%, #cbd5e1 50%);
+            pointer-events: none;
+        }
+
+        .map-wrapper {
+            margin-bottom: 2rem;
+            padding: 1px;
         }
     </style>
 </head>
@@ -211,7 +244,9 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <% surveyors.forEach(surveyor => { %>
-                                <tr class="hover:bg-gray-50 cursor-pointer transition-colors duration-150" onclick="toggleSurveyDetails(this, event)">
+                                <tr class="hover:bg-gray-50 cursor-pointer transition-colors duration-150" 
+                                    onclick="toggleSurveyDetails(this, event)"
+                                    data-surveyor-id="<%= surveyor.id %>">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <svg class="w-5 h-5 text-gray-500 transform transition-transform duration-200 chevron-icon" 
                                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,6 +275,17 @@
                                 <tr class="details-row hidden">
                                     <td colspan="6" class="px-6 py-4">
                                         <div class="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
+                                            <!-- Surveyor Map Section -->
+                                            <% if (surveyor.surveys && surveyor.surveys.some(s => s.latitude && s.longitude)) { %>
+                                                <div class="mb-6">
+                                                    <h3 class="text-lg font-medium text-gray-900 mb-3">Survey Locations</h3>
+                                                    <div class="map-wrapper">
+                                                        <div class="resizable-map-container rounded-lg border border-gray-200 shadow-sm">
+                                                            <div id="map-<%= surveyor.id %>" class="w-full h-full"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <% } %>
                                             <% if (surveyor.surveys && surveyor.surveys.length > 0) { %>
                                                 <table class="min-w-full divide-y divide-gray-200">
                                                     <thead class="bg-gray-100/50">
@@ -431,6 +477,23 @@
         
         detailsRow.classList.toggle('hidden');
         chevron.style.transform = detailsRow.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
+        
+        // Initialize or refresh map when showing details
+        if (!detailsRow.classList.contains('hidden')) {
+            const surveyorId = row.getAttribute('data-surveyor-id');
+            const mapContainer = document.getElementById(`map-${surveyorId}`);
+            if (mapContainer) {
+                // Add a small delay to ensure the container is visible
+                setTimeout(() => {
+                    if (mapInstances.has(surveyorId)) {
+                        const map = mapInstances.get(surveyorId);
+                        map.invalidateSize();
+                        return;
+                    }
+                    initializeSurveyorMap(surveyorId);
+                }, 100);
+            }
+        }
     }
 
     // Initialize the image modal
@@ -526,6 +589,177 @@
         deleteModal.classList.add('flex');
         modalBackdrop.classList.add('active');
         document.body.classList.add('modal-open');
+    }
+
+    // Store map instances
+    const mapInstances = new Map();
+
+    function handleMapResize(surveyorId) {
+        const mapContainer = document.getElementById(`map-${surveyorId}`);
+        if (!mapContainer) return;
+
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const map = mapInstances.get(surveyorId);
+                if (map) {
+                    requestAnimationFrame(() => {
+                        map.invalidateSize();
+                    });
+                }
+            }
+        });
+
+        resizeObserver.observe(mapContainer.parentElement);
+    }
+
+    function initializeSurveyorMap(surveyorId) {
+        const mapContainer = document.getElementById(`map-${surveyorId}`);
+        if (!mapContainer) return;
+
+        // Find the surveyor data
+        const surveyorData = JSON.parse('<%- JSON.stringify(surveyors) %>');
+        const surveyor = surveyorData.find(s => s.id.toString() === surveyorId.toString());
+        if (!surveyor) return;
+
+        // Filter surveys with valid coordinates
+        const validSurveys = surveyor.surveys.filter(s => s.latitude && s.longitude);
+        if (validSurveys.length === 0) return;
+
+        // Initialize map with a default view
+        const map = L.map(mapContainer, {
+            center: [validSurveys[0].latitude, validSurveys[0].longitude],
+            zoom: 13
+        });
+
+        // Store the map instance
+        mapInstances.set(surveyorId, map);
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Create marker cluster group
+        const markers = L.markerClusterGroup();
+
+        // Add markers for each survey location
+        validSurveys.forEach(survey => {
+            const marker = L.marker([survey.latitude, survey.longitude], {
+                title: survey.road_type
+            });
+            
+            // Create popup content
+            const popupContent = `
+                <div class="p-3 space-y-3" style="min-width: 200px;">
+                    <div class="border-b border-gray-200 pb-2">
+                        <h3 class="font-bold text-gray-900">${survey.road_type}</h3>
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            ${new Date(survey.created_at).toLocaleDateString()}
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Distress Type:</span>
+                            <span class="text-sm font-medium">${survey.distress_type}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Severity:</span>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold
+                                ${survey.distress_severity === 'High' ? 'bg-red-100 text-red-800' : 
+                                  survey.distress_severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                  'bg-green-100 text-green-800'}">
+                                ${survey.distress_severity === 'High' ? `
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                ` : survey.distress_severity === 'Medium' ? `
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                    </svg>
+                                ` : `
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                `}
+                                ${survey.distress_severity}
+                            </span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Traffic Volume:</span>
+                            <span class="text-sm font-medium">${survey.traffic_volume}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Distress Area:</span>
+                            <span class="text-sm font-medium">${survey.distress_area}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Repair Urgency:</span>
+                            <span class="text-sm font-medium">${survey.repair_urgency}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Drainage:</span>
+                            <span class="text-sm font-medium">${survey.drainage_condition}</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                        <div class="flex justify-between items-center">
+                            ${survey.image_url ? `
+                                <button onclick="openImageModal('${survey.image_url}', event)" 
+                                        class="text-blue-600 hover:text-blue-800 inline-flex items-center text-sm">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    View Image
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteSurvey('${survey.id}', event)" 
+                                    class="text-red-600 hover:text-red-800 inline-flex items-center text-sm">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                minWidth: 250,
+                className: 'custom-popup'
+            });
+            markers.addLayer(marker);
+        });
+
+        // Add markers to map
+        map.addLayer(markers);
+
+        // Fit map to markers
+        const bounds = markers.getBounds();
+        map.fitBounds(bounds, { padding: [50, 50] });
+
+        // Force a map refresh after a short delay
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+
+        // Add resize handler
+        handleMapResize(surveyorId);
     }
     </script>
     
