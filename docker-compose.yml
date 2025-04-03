@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - IMGBB_API_KEY=${IMGBB_API_KEY}
+      - OPENROUTER_KEY_1=${OPENROUTER_KEY_1}
+      - OPENROUTER_KEY_2=${OPENROUTER_KEY_2}
+      - OPENROUTER_KEY_3=${OPENROUTER_KEY_3}
+      - OPENROUTER_KEY_4=${OPENROUTER_KEY_4}
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge 

@@ -21,10 +21,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Add session middleware
 app.use(session({
-    secret: 'FuckTheFuckingFuckersBeforeTheyFuckYou!',
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production' }
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
 }));
 
 // Make avatar generator available to all views
