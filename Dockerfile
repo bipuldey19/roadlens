@@ -4,12 +4,17 @@ FROM node:18-alpine
 # Create app directory
 WORKDIR /app
 
-# Install app dependencies
+# Copy package files first
 COPY package*.json ./
-RUN npm install
 
-# Bundle app source
+# Install dependencies
+RUN npm ci
+
+# Copy the rest of the application
 COPY . .
+
+# Create volume mount points
+RUN mkdir -p /app/node_modules
 
 # Expose port
 EXPOSE 4000
