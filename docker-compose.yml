@@ -27,7 +27,12 @@ services:
       - /app
     restart: unless-stopped
     command: npm start
+    networks:
+      - default
+      - nginx-proxy-manager_default
 
 networks:
   default:
-    driver: bridge 
+    driver: bridge
+  nginx-proxy-manager_default:
+    external: true 
