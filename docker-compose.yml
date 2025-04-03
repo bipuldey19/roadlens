@@ -8,21 +8,21 @@ services:
     ports:
       - "4000:4000"
     environment:
-      -  MONGODB_URI='mongodb+srv://bipuldey19:ryVaYgdRhuUgN6jB@thesisevaluatedatabase.gmrrx.mongodb.net/?retryWrites=true&w=majority&appName=ThesisEvaluateDatabase'
-      - SESSION_SECRET='FuckTheFuckingFuckersBeforeTheyFuckYou!'
-      - IMGBB_API_KEY='64869f569c72df2121fa2640ae4b3d1f'
-      - SUPABASE_URL='https://vjnuqvfefhhomhqomuzu.supabase.co'
-      - SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqbnVxdmZlZmhob21ocW9tdXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg5MDkxMzYsImV4cCI6MjA1NDQ4NTEzNn0.gUNKW128C1fP3DeUNWrRtswwkjBbxt1gi_OQ-BLEOmE"
-      - EMAIL_USER='rfaa4Lt7yz'
-      - EMAIL_PASS='vYBH4GPsd9Nw6rJFC7ql2gdT'
-      - JWT_SECRET='71177b70b481a9f36afdaee97f9cdfd2f45c246c01daa0164bea0b7cb82a939d0edcb471a207f797027799183e1b66ec4a771a79597bf0c1e378dde7c8bb8f65'
-      - APP_URL='http://localhost:4000'
-      - AHASEND_API_KEY='szUg0k69Uhag9OQqKZLayN2n4vejT8bP4EFYBhKDeMZel1fNhHNI505PZlKi9egS'
-      - EMAIL_FROM='roadlens@srv1.eu.org'
-      - OPENROUTER_KEY_1=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
-      - OPENROUTER_KEY_2=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
-      - OPENROUTER_KEY_3=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
-      - OPENROUTER_KEY_4=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
+      - MONGODB_URI=${MONGODB_URI}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - IMGBB_API_KEY=${IMGBB_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - JWT_SECRET=${JWT_SECRET}
+      - APP_URL=${APP_URL}
+      - AHASEND_API_KEY=${AHASEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - OPENROUTER_KEY_1=${OPENROUTER_KEY_1}
+      - OPENROUTER_KEY_2=${OPENROUTER_KEY_2}
+      - OPENROUTER_KEY_3=${OPENROUTER_KEY_3}
+      - OPENROUTER_KEY_4=${OPENROUTER_KEY_4}
     volumes:
       - /app
     restart: unless-stopped
