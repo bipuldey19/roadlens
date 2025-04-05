@@ -9,8 +9,41 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';  // Add to .env
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const SALT_ROUNDS = 10;
+
+// Configure Gmail transporter
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+// Email sending function
+async function sendEmail(to, subject, htmlContent) {
+    try {
+        const mailOptions = {
+            from: {
+                name: "Road Lens",
+                address: process.env.EMAIL_USER
+            },
+            to: to,
+            subject: subject,
+            html: htmlContent
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        // console.log('Email sent successfully:', info.messageId);
+        return info;
+    } catch (error) {
+        console.error('Email sending error:', error);
+        throw error;
+    }
+}
 
 // Public routes
 publicRouter.post('/submit-evaluation', async (req, res) => {
@@ -222,52 +255,12 @@ adminRouter.get('/evaluation-form/:id', async (req, res) => {
     }
 });
 
-// Email sending function using AhaSend API
-async function sendEmail(to, subject, htmlContent) {
-    try {
-        const data = JSON.stringify({
-            "from": {
-                "email": process.env.EMAIL_FROM,
-                "name": "Road Lens"
-            },
-            "recipients": [
-                {
-                "email": to
-                }
-            ],
-            "content": {
-                "subject": subject,
-                "html_body": htmlContent
-            }
-        });
-
-        const config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: 'https://api.ahasend.com/v1/email/send',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'X-Api-Key': process.env.AHASEND_API_KEY
-            },
-            data: data
-        };
-
-        const response = await axios.request(config);
-
-        console.log('Email sent successfully:', response.data);
-        return response.data;
-    } catch (error) {
-        console.error('Error sending email:', error.response?.data || error.message);
-        throw error;
-    }
-}
-
-// Approve endpoint
+// Update the approve endpoint to use Gmail
 adminRouter.post('/approve/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
-        // First get the evaluator response
+        // Get the evaluator response
         const { data: evaluator, error: evalError } = await supabase
             .from('evaluator_responses')
             .select('*')
@@ -290,11 +283,9 @@ adminRouter.post('/approve/:id', async (req, res) => {
             });
         }
 
-        // Generate a random password and hash it
         const tempPassword = Math.random().toString(36).slice(-8);
         const hashedPassword = await bcrypt.hash(tempPassword, SALT_ROUNDS);
 
-        // Generate reset token
         const resetToken = jwt.sign(
             { email: evaluator.email },
             JWT_SECRET,
@@ -321,139 +312,138 @@ adminRouter.post('/approve/:id', async (req, res) => {
             .select()
             .single();
 
-        if (surveyorError) {
-            throw surveyorError;
-        }
+        if (surveyorError) throw surveyorError;
 
-        // Send email with temporary password
+        // Send welcome email
         const setPasswordUrl = `${process.env.APP_URL}/set-password/${resetToken}`;
         await sendEmail(
             evaluator.email,
             'Welcome to Road Lens - Set Your Password',
             `<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to Road Lens</title>
-            <style>
-                body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                .email-container {
-                    border: 1px solid #e0e0e0;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-                }
-                .header {
-                    background-color: #2c3e50;
-                    color: white;
-                    padding: 20px;
-                    text-align: center;
-                }
-                .logo {
-                    font-size: 28px;
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
-                .content {
-                    padding: 30px;
-                    background-color: #ffffff;
-                }
-                .footer {
-                    background-color: #f5f5f5;
-                    padding: 15px;
-                    text-align: center;
-                    font-size: 12px;
-                    color: #666;
-                }
-                .btn-container {
-                    text-align: center;
-                    margin: 30px 0;
-                }
-                .btn {
-                    display: inline-block;
-                    background: linear-gradient(135deg, #3498db, #2980b9);
-                    color: white;
-                    text-decoration: none;
-                    padding: 14px 32px;
-                    border-radius: 50px;
-                    font-weight: bold;
-                    font-size: 16px;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3);
-                    transition: all 0.3s ease;
-                    border: 2px solid transparent;
-                }
-                .btn:hover {
-                    background: linear-gradient(135deg, #2980b9, #3498db);
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 15px rgba(41, 128, 185, 0.4);
-                }
-                .password-container {
-                    background-color: #f8f9fa;
-                    border: 1px dashed #ccc;
-                    border-radius: 4px;
-                    padding: 10px;
-                    margin: 15px 0;
-                    text-align: center;
-                }
-                .password {
-                    font-family: monospace;
-                    font-size: 18px;
-                    letter-spacing: 1px;
-                }
-                .note {
-                    font-size: 13px;
-                    color: #777;
-                    margin-top: 25px;
-                    border-top: 1px solid #eee;
-                    padding-top: 15px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="email-container">
-                <div class="header">
-                    <div class="logo">Road Lens</div>
-                    <div>Road Survey Management Platform</div>
-                </div>
-                
-                <div class="content">
-                    <h2>Welcome to the Road Lens Team!</h2>
-                    
-                    <p>Congratulations! Your evaluator application has been approved, and you are now officially registered as a Road Lens Surveyor.</p>
-                    
-                    <p>We're excited to have you join our network of professionals dedicated to improving road infrastructure through accurate data collection and analysis.</p>
-                    
-                    <div class="password-container">
-                        <p>Your temporary password is:</p>
-                        <p class="password"><strong>${tempPassword}</strong></p>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Welcome to Road Lens</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    .email-container {
+                        border: 1px solid #e0e0e0;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+                    }
+                    .header {
+                        background: linear-gradient(135deg, #3498db, #30be46);
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        padding-top: 2.5rem;
+                    }
+                    .logo {
+                        font-size: 28px;
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                    }
+                    .content {
+                        padding: 30px;
+                        background-color: #ffffff;
+                    }
+                    .footer {
+                        background-color: #f5f5f5;
+                        padding: 15px;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    .btn-container {
+                        text-align: center;
+                        margin: 30px 0;
+                    }
+                    .btn {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #3498db, #30be46);
+                        color: white;
+                        text-decoration: none;
+                        padding: 14px 32px;
+                        border-radius: 50px;
+                        font-weight: bold;
+                        font-size: 16px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3);
+                        transition: all 0.3s ease;
+                        border: 2px solid transparent;
+                    }
+                    .btn:hover {
+                        background: linear-gradient(190deg, #3498db, #30be46);
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 15px rgba(41, 128, 185, 0.4);
+                    }
+                    .password-container {
+                        background-color: #f8f9fa;
+                        border: 1px dashed #ccc;
+                        border-radius: 4px;
+                        padding: 10px;
+                        margin: 15px 0;
+                        text-align: center;
+                    }
+                    .password {
+                        font-family: monospace;
+                        font-size: 18px;
+                        letter-spacing: 1px;
+                    }
+                    .note {
+                        font-size: 13px;
+                        color: #777;
+                        margin-top: 25px;
+                        border-top: 1px solid #eee;
+                        padding-top: 15px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="header">
+                        <div class="logo"><img src="https://roadlens.my.to/assets/try2.svg" alt="Road Lens Logo" style="width: 10rem; margin-bottom: 0.5rem;"></div>
+                        <div>Road Survey Management Platform</div>
                     </div>
                     
-                    <p>To get started with your surveyor account, please set a new password by clicking the button below:</p>
-                    
-                    <div class="btn-container">
-                        <a href="${setPasswordUrl}" class="btn">Set Your New Password</a>
+                    <div class="content">
+                        <h2>Welcome to the Road Lens Team!</h2>
+                        
+                        <p>Congratulations! Your evaluator application has been approved, and you are now officially registered as a Road Lens Surveyor.</p>
+                        
+                        <p>We're excited to have you join our network of professionals dedicated to improving road infrastructure through accurate data collection and analysis.</p>
+                        
+                        <div class="password-container">
+                            <p>Your temporary password is:</p>
+                            <p class="password"><strong>${tempPassword}</strong></p>
+                        </div>
+                        
+                        <p>To get started with your surveyor account, please set a new password by clicking the button below:</p>
+                        
+                        <div class="btn-container">
+                            <a href="${setPasswordUrl}" class="btn">Set Your New Password</a>
+                        </div>
+                        
+                        <p class="note">This link will expire in 24 hours. If you need assistance, please contact our support team.</p>
                     </div>
                     
-                    <p class="note">This link will expire in 24 hours. If you need assistance, please contact our support team at support@roadlens.com</p>
+                    <div class="footer">
+                        <p>&copy; 2025 Road Lens, Inc. All rights reserved.</p>
+                        <p>This email was sent to you because you registered as an evaluator on our platform.</p>
+                    </div>
                 </div>
-                
-                <div class="footer">
-                    <p>&copy; 2025 Road Lens, Inc. All rights reserved.</p>
-                    <p>This email was sent to you because you registered as an evaluator on our platform.</p>
-                </div>
-            </div>
-        </body>
-        </html>`
+            </body>
+            </html>`
         );
 
         res.json({
@@ -470,7 +460,6 @@ adminRouter.post('/approve/:id', async (req, res) => {
     }
 });
 
-// Reject endpoint
 adminRouter.post('/reject/:id', async (req, res) => {
     try {
         const { id } = req.params;
