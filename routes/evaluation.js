@@ -412,7 +412,7 @@ adminRouter.post('/approve/:id', async (req, res) => {
             <body>
                 <div class="email-container">
                     <div class="header">
-                        <div class="logo"><img src="https://roadlens.my.to/assets/try2.svg" alt="Road Lens Logo" style="width: 10rem; margin-bottom: 0.5rem;"></div>
+                        <div class="logo"><img src="https://pixeldrain.com/api/file/VmZsBvXN" alt="Road Lens Logo" style="width: 10rem; margin-bottom: 0.5rem;"></div>
                         <div>Road Survey Management Platform</div>
                     </div>
                     
