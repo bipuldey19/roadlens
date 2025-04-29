@@ -166,16 +166,35 @@ publicRouter.post('/submit-evaluation', async (req, res) => {
 // Admin routes
 adminRouter.get('/evaluation-dashboard', async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        // Get total count first
+        const { count } = await supabase
+            .from('evaluator_responses')
+            .select('*', { count: 'exact', head: true });
+
+        // Get paginated evaluations
         const { data: evaluations, error: evalError } = await supabase
             .from('evaluator_responses')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (evalError) throw evalError;
 
+        const totalPages = Math.ceil(count / limit);
+
         res.render('admin/evaluation-dashboard', { 
             evaluations,
-            adminEmail: req.session.adminEmail // Pass admin email to show in navbar
+            adminEmail: req.session.adminEmail,
+            pagination: {
+                current: page,
+                total: totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
         });
     } catch (error) {
         res.status(500).json({

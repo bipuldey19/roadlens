@@ -158,7 +158,16 @@ publicRouter.delete('/surveys/delete/:id', userAuth, async (req, res) => {
 // Admin routes for survey management
 adminRouter.get('/survey-dashboard', async (req, res) => {
     try {
-        // Get all surveyors with their evaluator info
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        // Get total count first
+        const { count } = await supabase
+            .from('surveyors')
+            .select('*', { count: 'exact', head: true });
+
+        // Get paginated surveyors with their latest activity
         const { data: surveyors, error: surveyorsError } = await supabase
             .from('surveyors')
             .select(`
@@ -186,13 +195,29 @@ adminRouter.get('/survey-dashboard', async (req, res) => {
                     created_at
                 )
             `)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (surveyorsError) throw surveyorsError;
 
+        // Sort surveyors by their last activity (most recent survey)
+        const sortedSurveyors = surveyors.sort((a, b) => {
+            const aLastActivity = a.surveys.length ? new Date(a.surveys[0].created_at) : new Date(0);
+            const bLastActivity = b.surveys.length ? new Date(b.surveys[0].created_at) : new Date(0);
+            return bLastActivity - aLastActivity;
+        });
+
+        const totalPages = Math.ceil(count / limit);
+
         res.render('admin/survey-dashboard', {
-            surveyors,
-            adminEmail: req.session.adminEmail
+            surveyors: sortedSurveyors,
+            adminEmail: req.session.adminEmail,
+            pagination: {
+                current: page,
+                total: totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
         });
 
     } catch (error) {

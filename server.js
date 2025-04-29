@@ -43,7 +43,7 @@ app.use('/', authRouter);
 
 // Add evaluation routes
 const evaluationRouter = require('./routes/evaluation');
-app.use('/admin/evaluation', auth, evaluationRouter.adminRoutes); // Admin routes
+app.use('/admin', auth, evaluationRouter.adminRoutes); // Admin routes
 app.use('/', evaluationRouter.publicRoutes); // Public routes
 
 // Add survey routes
