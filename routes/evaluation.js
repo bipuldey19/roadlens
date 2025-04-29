@@ -7,6 +7,7 @@ const Papa = require('papaparse');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -456,6 +457,214 @@ adminRouter.post('/approve/:id', async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message || 'Failed to approve evaluator'
+        });
+    }
+});
+
+// Add this route after the approve route
+adminRouter.post('/add-manual-surveyor', async (req, res) => {
+    try {
+        const { email, fullName, age, institutionType, institutionName } = req.body;
+        
+        // Check if email already exists
+        const { data: existingSurveyor, error: checkError } = await supabase
+            .from('surveyors')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (existingSurveyor) {
+            return res.status(400).json({
+                success: false,
+                message: 'This email is already registered as a surveyor'
+            });
+        }
+
+        // Generate temporary password and UUID
+        const tempPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(tempPassword, SALT_ROUNDS);
+        const surveyorId = uuidv4();
+
+        // Create evaluator response first
+        const { data: evaluator, error: evalError } = await supabase
+            .from('evaluator_responses')
+            .insert([{
+                id: surveyorId,
+                full_name: fullName,
+                age: age ? parseInt(age) : null,
+                institution_type: institutionType,
+                institution_name: institutionName,
+                email: email,
+                status: 'approved'
+            }])
+            .select()
+            .single();
+
+        if (evalError) throw evalError;
+
+        // Create surveyor record
+        const { data: surveyor, error: surveyorError } = await supabase
+            .from('surveyors')
+            .insert([{
+                surveyor_id: surveyorId,
+                email: email,
+                password: hashedPassword,
+                status: 'approved'
+            }])
+            .select()
+            .single();
+
+        if (surveyorError) throw surveyorError;
+
+        // Generate reset token
+        const resetToken = jwt.sign(
+            { email: email },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        // Reuse the same email sending code from the approve route
+        const setPasswordUrl = `${process.env.APP_URL}/set-password/${resetToken}`;
+        await sendEmail(
+            email,
+            'Welcome to Road Lens - Set Your Password',
+            `<!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Welcome to Road Lens</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                        line-height: 1.6;
+                        color: #333;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+                    .email-container {
+                        border: 1px solid #e0e0e0;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+                    }
+                    .header {
+                        background: linear-gradient(135deg, #3498db, #30be46);
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        padding-top: 2.5rem;
+                    }
+                    .logo {
+                        font-size: 28px;
+                        font-weight: bold;
+                        margin-bottom: 5px;
+                    }
+                    .content {
+                        padding: 30px;
+                        background-color: #ffffff;
+                    }
+                    .footer {
+                        background-color: #f5f5f5;
+                        padding: 15px;
+                        text-align: center;
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    .btn-container {
+                        text-align: center;
+                        margin: 30px 0;
+                    }
+                    .btn {
+                        display: inline-block;
+                        background: linear-gradient(135deg, #3498db, #30be46);
+                        color: white;
+                        text-decoration: none;
+                        padding: 14px 32px;
+                        border-radius: 50px;
+                        font-weight: bold;
+                        font-size: 16px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3);
+                        transition: all 0.3s ease;
+                        border: 2px solid transparent;
+                    }
+                    .btn:hover {
+                        background: linear-gradient(190deg, #3498db, #30be46);
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 15px rgba(41, 128, 185, 0.4);
+                    }
+                    .password-container {
+                        background-color: #f8f9fa;
+                        border: 1px dashed #ccc;
+                        border-radius: 4px;
+                        padding: 10px;
+                        margin: 15px 0;
+                        text-align: center;
+                    }
+                    .password {
+                        font-family: monospace;
+                        font-size: 18px;
+                        letter-spacing: 1px;
+                    }
+                    .note {
+                        font-size: 13px;
+                        color: #777;
+                        margin-top: 25px;
+                        border-top: 1px solid #eee;
+                        padding-top: 15px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="email-container">
+                    <div class="header">
+                        <div class="logo"><img src="https://pixeldrain.com/api/file/VmZsBvXN" alt="Road Lens Logo" style="width: 10rem; margin-bottom: 0.5rem;"></div>
+                        <div>Road Survey Management Platform</div>
+                    </div>
+                    
+                    <div class="content">
+                        <h2>Welcome to the Road Lens Team!</h2>
+                        
+                        <p>Congratulations! Your evaluator application has been approved, and you are now officially registered as a Road Lens Surveyor.</p>
+                        
+                        <p>We're excited to have you join our network of professionals dedicated to improving road infrastructure through accurate data collection and analysis.</p>
+                        
+                        <div class="password-container">
+                            <p>Your temporary password is:</p>
+                            <p class="password"><strong>${tempPassword}</strong></p>
+                        </div>
+                        
+                        <p>To get started with your surveyor account, please set a new password by clicking the button below:</p>
+                        
+                        <div class="btn-container">
+                            <a href="${setPasswordUrl}" class="btn">Set Your New Password</a>
+                        </div>
+                        
+                        <p class="note">This link will expire in 24 hours. If you need assistance, please contact our support team.</p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>&copy; 2025 Road Lens, Inc. All rights reserved.</p>
+                        <p>This email was sent to you because you registered as an evaluator on our platform.</p>
+                    </div>
+                </div>
+            </body>
+            </html>`
+        );
+
+        res.json({
+            success: true,
+            message: 'Surveyor added successfully'
+        });
+
+    } catch (error) {
+        console.error('Add surveyor error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to add surveyor'
         });
     }
 });

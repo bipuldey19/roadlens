@@ -8,6 +8,7 @@ const session = require('express-session');
 const auth = require('./middleware/auth');
 const userAuth = require('./middleware/userAuth');
 const generateAvatarUrl = require('./config/avatar');
+const supabase = require('./config/supabase');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -40,10 +41,10 @@ app.use('/', uploadRouter);
 const authRouter = require('./routes/auth');
 app.use('/', authRouter);
 
-// Split evaluation routes into public and admin routes
+// Add evaluation routes
 const evaluationRouter = require('./routes/evaluation');
+app.use('/admin/evaluation', auth, evaluationRouter.adminRoutes); // Admin routes
 app.use('/', evaluationRouter.publicRoutes); // Public routes
-app.use('/admin', auth, evaluationRouter.adminRoutes); // Protected admin routes
 
 // Add survey routes
 const surveyRouter = require('./routes/survey');
@@ -203,24 +204,92 @@ function getRandomQuestions(questions, count) {
 
 // Routes
 app.get("/", async (req, res) => {
-  try {
-    const data = await fetchData();
-    const uniqueDistressTypes = [
-      ...new Set(data.map((point) => point.Distress_Type)),
-    ];
+    try {
+        const data = await fetchData();
+        const uniqueDistressTypes = [...new Set(data.map((point) => point.Distress_Type))];
+        
+        const { data: surveyors, error: surveyorsError } = await supabase
+            .from('surveys')
+            .select(`
+                surveyor_id,
+                created_at,
+                surveyors!inner (
+                    email,
+                    evaluator_responses!surveyors_surveyor_id_fkey!inner (
+                        full_name,
+                        institution_name
+                    )
+                )
+            `)
+            .gte('created_at', new Date(new Date().setDate(1)).toISOString())
+            .lte('created_at', new Date().toISOString());
 
-    res.render("index", {
-      data,
-      uniqueDistressTypes,
-      selectedLayer: req.query.layer || "All Distresses",
-      selectedType: req.query.type || "",
-      selectedSeverity: req.query.severity || "",
-      userEmail: req.session.userEmail,
-      adminEmail: req.session.adminEmail
-    });
-  } catch (error) {
-    res.status(500).render("error", { error: "Failed to fetch data" });
-  }
+        if (surveyorsError) {
+            console.error('Error fetching surveyors:', surveyorsError);
+            throw surveyorsError;
+        }
+
+        // Updated data processing
+        const contributorMap = surveyors.reduce((acc, survey) => {
+            const surveyorId = survey.surveyor_id;
+            const surveyor = survey.surveyors;
+            if (!acc[surveyorId] && surveyor && surveyor.evaluator_responses) {
+                acc[surveyorId] = {
+                    name: surveyor.evaluator_responses.full_name,
+                    email: surveyor.email,
+                    institution: surveyor.evaluator_responses.institution_name,
+                    surveys: 0,
+                    badges: []
+                };
+            }
+            if (acc[surveyorId]) {
+                acc[surveyorId].surveys++;
+            }
+            return acc;
+        }, {});
+
+        // Convert to array and sort by survey count only
+        const topContributors = Object.values(contributorMap)
+            .map(contributor => {
+                // Assign badges based on survey count only
+                if (contributor.surveys >= 50) contributor.badges.push('Expert');
+                if (contributor.surveys >= 25) contributor.badges.push('Active');
+                if (contributor.surveys >= 10) contributor.badges.push('Regular');
+                return contributor;
+            })
+            .sort((a, b) => b.surveys - a.surveys)
+            .slice(0, 3);
+
+        // If less than 3 contributors, pad with placeholder data
+        while (topContributors.length < 3) {
+            topContributors.push({
+                name: 'New Surveyor',
+                email: 'new@roadlens.com',
+                institution: 'Road Lens',
+                surveys: 0,
+                badges: []
+            });
+        }
+
+        res.render("index", {
+            data,
+            uniqueDistressTypes,
+            selectedLayer: req.query.layer || "All Distresses",
+            selectedType: req.query.type || "",
+            selectedSeverity: req.query.severity || "",
+            userEmail: req.session.userEmail,
+            adminEmail: req.session.adminEmail,
+            topContributors
+        });
+    } catch (error) {
+        console.error("Error rendering index:", error);
+        res.status(500).render("error", { 
+            error: "Failed to fetch data",
+            details: error.message,
+            userEmail: req.session.userEmail,
+            adminEmail: req.session.adminEmail
+        });
+    }
 });
 
 app.get("/evaluation", async (req, res) => {
@@ -245,9 +314,33 @@ app.get("/evaluation", async (req, res) => {
   } catch (error) {
     console.error("Survey error:", error);
     res.status(500).render("error", {
-      message: "Failed to fetch survey questions"
+      error: "Failed to fetch survey questions",
+      details: error.message,
+      userEmail: req.session.userEmail,
+      adminEmail: req.session.adminEmail
     });
   }
+});
+
+// Add a global error handler
+app.use((err, req, res, next) => {
+    console.error('Global error:', err);
+    res.status(500).render('error', {
+        error: 'Something went wrong',
+        details: process.env.NODE_ENV === 'development' ? err.message : null,
+        userEmail: req.session.userEmail,
+        adminEmail: req.session.adminEmail
+    });
+});
+
+// Add a 404 handler
+app.use((req, res) => {
+    res.status(404).render('error', {
+        error: 'Page Not Found',
+        details: 'The page you are looking for does not exist.',
+        userEmail: req.session.userEmail,
+        adminEmail: req.session.adminEmail
+    });
 });
 
 app.listen(PORT, () => {

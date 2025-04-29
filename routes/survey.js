@@ -4,6 +4,7 @@ const adminRouter = express.Router();
 const supabase = require('../config/supabase');
 const auth = require('../middleware/auth');
 const userAuth = require('../middleware/userAuth');
+require('dotenv').config();
 
 // User dashboard
 publicRouter.get('/my-surveys', userAuth, async (req, res) => {
