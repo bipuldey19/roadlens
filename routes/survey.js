@@ -200,24 +200,16 @@ adminRouter.get('/survey-dashboard', async (req, res) => {
 
         if (surveyorsError) throw surveyorsError;
 
-        // Sort surveyors by their last activity (most recent survey)
-        const sortedSurveyors = surveyors.sort((a, b) => {
-            const aLastActivity = a.surveys.length ? new Date(a.surveys[0].created_at) : new Date(0);
-            const bLastActivity = b.surveys.length ? new Date(b.surveys[0].created_at) : new Date(0);
-            return bLastActivity - aLastActivity;
-        });
-
-        const totalPages = Math.ceil(count / limit);
-
         res.render('admin/survey-dashboard', {
-            surveyors: sortedSurveyors,
+            surveyors,
             adminEmail: req.session.adminEmail,
             pagination: {
                 current: page,
-                total: totalPages,
-                hasNext: page < totalPages,
+                total: Math.ceil(count / limit),
+                hasNext: page < Math.ceil(count / limit),
                 hasPrev: page > 1
-            }
+            },
+            totalSurveyors: count
         });
 
     } catch (error) {

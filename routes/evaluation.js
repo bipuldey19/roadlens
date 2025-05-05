@@ -184,22 +184,22 @@ adminRouter.get('/evaluation-dashboard', async (req, res) => {
 
         if (evalError) throw evalError;
 
-        const totalPages = Math.ceil(count / limit);
-
         res.render('admin/evaluation-dashboard', { 
             evaluations,
             adminEmail: req.session.adminEmail,
             pagination: {
                 current: page,
-                total: totalPages,
-                hasNext: page < totalPages,
+                total: Math.ceil(count / limit),
+                hasNext: page < Math.ceil(count / limit),
                 hasPrev: page > 1
-            }
+            },
+            totalEvaluations: count
         });
     } catch (error) {
+        console.error('Error fetching evaluations:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message || 'Failed to fetch evaluations'
         });
     }
 });
