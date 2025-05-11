@@ -41,7 +41,7 @@
 
                     <!-- Road Information Section -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <!-- Column 1 -->
+                        <!-- Column 1: Road Information -->
                         <div class="space-y-6">
                             <div class="relative">
                                 <label class="block text-gray-700 font-semibold mb-2">Road Type</label>
@@ -55,7 +55,7 @@
                                     <option value="Service/Private Road">Service/Private Road</option>
                                     <option value="Rural Road">Rural Road</option>
                                 </select>
-                        </div>
+                            </div>
 
                             <div class="relative">
                                 <label class="block text-gray-700 font-semibold mb-2">Traffic Volume</label>
@@ -66,8 +66,53 @@
                                     <option value="Medium">Medium</option>
                                     <option value="High">High</option>
                                 </select>
-                    </div>
+                            </div>
 
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Adjacent Area Type</label>
+                                <select name="surroundingArea" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Adjacent Area Type</option>
+                                    <option value="Residential">Residential</option>
+                                    <option value="Commercial">Commercial</option>
+                                    <option value="Industrial">Industrial</option>
+                                    <option value="Educational Institution">Educational Institution</option>
+                                    <option value="Medical Facility">Medical Facility</option>
+                                    <option value="Transportation Hub">Transportation Hub</option>
+                                    <option value="Religious Facility">Religious Facility</option>
+                                    <option value="Government Building">Government Building</option>
+                                    <option value="Mixed Use">Mixed Use</option>
+                                    <option value="Open Space/Park">Open Space/Park</option>
+                                    <option value="Construction Site">Construction Site</option>
+                                    <option value="None">None</option>
+                                </select>
+                            </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Drainage Quality</label>
+                                <select name="drainageCondition" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Drainage Quality</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Moderate">Moderate</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                            </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-700 font-semibold mb-2">Accident History</label>
+                                <select name="accidentHistory" required 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Accident History</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                    <option value="Unsure">Unsure</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Distress Point Information -->
+                        <div class="space-y-6">
                             <div class="relative">
                                 <label class="block text-gray-700 font-semibold mb-2">Distress Type</label>
                                 <select name="distressType" required 
@@ -78,64 +123,54 @@
                                     <option value="Raveling">Raveling</option>
                                     <option value="Crack">Crack</option>
                                     <option value="Edge Crack">Edge Crack</option>
-                            </select>
-                        </div>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
 
                             <div class="relative">
-                                <label class="block text-gray-700 font-semibold mb-2">Distress Area</label>
+                                <label class="block text-gray-700 font-semibold mb-2">Distress Size</label>
                                 <select name="distressArea" required 
                                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">Select Distress Area</option>
+                                    <option value="">Select Distress Size</option>
                                     <option value="Small">Small</option>
                                     <option value="Medium">Medium</option>
                                     <option value="Large">Large</option>
                                 </select>
-                    </div>
-                        </div>
+                            </div>
 
-                        <!-- Column 2 -->
-                        <div class="space-y-6">
                             <div class="relative">
                                 <label class="block text-gray-700 font-semibold mb-2">Distress Severity</label>
                                 <select name="distressSeverity" required 
                                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">Select Severity</option>
+                                    <option value="">Select Severity Level</option>
                                     <option value="Low">Low</option>
                                     <option value="Medium">Medium</option>
                                     <option value="High">High</option>
                                 </select>
-                </div>
+                            </div>
 
                             <div class="relative">
-                                <label class="block text-gray-700 font-semibold mb-2">Repair Urgency</label>
+                                <label class="block text-gray-700 font-semibold mb-2">Repair Priority</label>
                                 <select name="repairUrgency" required 
                                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">Select Urgency</option>
+                                    <option value="">Select Repair Priority</option>
                                     <option value="Low">Low</option>
                                     <option value="Moderate">Moderate</option>
                                     <option value="Urgent">Urgent</option>
                                 </select>
-                </div>
+                            </div>
 
                             <div class="relative">
-                                <label class="block text-gray-700 font-semibold mb-2">Drainage Condition</label>
-                                <select name="drainageCondition" required 
+                                <label class="block text-gray-700 font-semibold mb-2">Impact On Users</label>
+                                <select name="usageIssues" required 
                                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">Select Condition</option>
-                                    <option value="Good">Good</option>
-                                    <option value="Moderate">Moderate</option>
-                                    <option value="Poor">Poor</option>
-                                </select>
-                                    </div>
-
-                            <div class="relative">
-                                <label class="block text-gray-700 font-semibold mb-2">Accident History</label>
-                                <select name="accidentHistory" required 
-                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="">Select History</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                    <option value="Unsure">Unsure</option>
+                                    <option value="">Select Impact Type</option>
+                                    <option value="None">No Issues</option>
+                                    <option value="Vehicle Damage">Vehicle Damage</option>
+                                    <option value="Safety Hazard">Safety Hazard</option>
+                                    <option value="Traffic Congestion">Traffic Congestion</option>
+                                    <option value="Access Difficulty">Access Difficulty</option>
+                                    <option value="Other">Other</option>
                                 </select>
                             </div>
                         </div>

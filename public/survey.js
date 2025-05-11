@@ -383,6 +383,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 repairUrgency: form.repairUrgency.value,
                 drainageCondition: form.drainageCondition.value,
                 accidentHistory: form.accidentHistory.value,
+                surroundingArea: form.surroundingArea.value,
+                usageIssues: form.usageIssues.value,
                 imageUrl: imagePreview.dataset.imgbbUrl,
                 latitude: parseFloat(document.getElementById('latitude').textContent),
                 longitude: parseFloat(document.getElementById('longitude').textContent),

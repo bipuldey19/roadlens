@@ -286,11 +286,11 @@
                                                    <p class="font-medium"><%= survey.distress_area %></p>
                                                </div>
                                                <div>
-                                                   <p class="text-sm text-gray-500">Repair Urgency</p>
+                                                   <p class="text-sm text-gray-500">Repair Priority</p>
                                                    <p class="font-medium"><%= survey.repair_urgency %></p>
                                                </div>
                                                <div>
-                                                   <p class="text-sm text-gray-500">Drainage</p>
+                                                   <p class="text-sm text-gray-500">Drainage Quality</p>
                                                    <p class="font-medium"><%= survey.drainage_condition %></p>
                                                </div>
                                            </div>
@@ -463,49 +463,46 @@
                                                             <tr class="survey-details-row hidden">
                                                                 <td colspan="6" class="px-6 py-4">
                                                                     <div class="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
-                                                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                                        <div class="grid grid-cols-2 gap-4 text-sm">
                                                                             <div>
-                                                                                <p class="text-sm text-gray-500">Traffic Volume</p>
+                                                                                <p class="text-gray-500">Road Type</p>
+                                                                                <p class="font-medium"><%= survey.road_type %></p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p class="text-gray-500">Traffic Volume</p>
                                                                                 <p class="font-medium"><%= survey.traffic_volume %></p>
                                                                             </div>
                                                                             <div>
-                                                                                <p class="text-sm text-gray-500">Distress Area</p>
+                                                                                <p class="text-gray-500">Distress Type</p>
+                                                                                <p class="font-medium"><%= survey.distress_type %></p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p class="text-gray-500">Distress Size</p>
                                                                                 <p class="font-medium"><%= survey.distress_area %></p>
                                                                             </div>
                                                                             <div>
-                                                                                <p class="text-sm text-gray-500">Repair Urgency</p>
+                                                                                <p class="text-gray-500">Distress Severity</p>
+                                                                                <p class="font-medium"><%= survey.distress_severity %></p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p class="text-gray-500">Repair Priority</p>
                                                                                 <p class="font-medium"><%= survey.repair_urgency %></p>
                                                                             </div>
                                                                             <div>
-                                                                                <p class="text-sm text-gray-500">Drainage Condition</p>
+                                                                                <p class="text-gray-500">Drainage Quality</p>
                                                                                 <p class="font-medium"><%= survey.drainage_condition %></p>
                                                                             </div>
                                                                             <div>
-                                                                                <p class="text-sm text-gray-500">Accident History</p>
+                                                                                <p class="text-gray-500">Accident History</p>
                                                                                 <p class="font-medium"><%= survey.accident_history %></p>
                                                                             </div>
-                                                                            <div class="col-span-2">
-                                                                                <p class="text-sm text-gray-500">Location</p>
-                                                                                <% if (survey.latitude && survey.longitude) { %>
-                                                                                    <p class="font-medium">
-                                                                                        <%= survey.latitude %>, <%= survey.longitude %>
-                                                                                        <% if (survey.accuracy) { %>
-                                                                                            <span class="text-xs text-gray-500">(Accuracy: <%= survey.accuracy %>m)</span>
-                                                                                        <% } %>
-                                                                                    </p>
-                                                                                    <a href="https://www.google.com/maps?q=<%= survey.latitude %>,<%= survey.longitude %>" 
-                                                                                       target="_blank"
-                                                                                       class="text-blue-600 hover:text-blue-800 text-sm inline-flex items-center mt-1"
-                                                                                       onclick="event.stopPropagation()">
-                                                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                                                                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                                                                                        </svg>
-                                                                                        Open in Maps
-                                                                                    </a>
-                                                                                <% } else { %>
-                                                                                    <p class="text-gray-500 italic">Location not available</p>
-                                                                                <% } %>
+                                                                            <div>
+                                                                                <p class="text-gray-500">Adjacent Area Type</p>
+                                                                                <p class="font-medium"><%= survey.surrounding_area %></p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p class="text-gray-500">Impact On Users</p>
+                                                                                <p class="font-medium"><%= survey.usage_issues %></p>
                                                                             </div>
                                                                         </div>
                                                                     </div>
