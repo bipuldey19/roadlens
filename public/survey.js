@@ -171,15 +171,22 @@ document.addEventListener('DOMContentLoaded', function() {
             previewContainer.classList.remove('hidden');
             imagePreview.src = '';
 
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75';
-            loadingDiv.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                    <p class="mt-2 text-gray-700 font-semibold">Uploading image...</p>
-                </div>
-            `;
-            previewContainer.appendChild(loadingDiv);
+            // Loader inside the image box
+            const imageBox = imagePreview.parentElement;
+            let loaderDiv = imageBox.querySelector('.image-upload-loader');
+            if (!loaderDiv) {
+                loaderDiv = document.createElement('div');
+                loaderDiv.className = 'image-upload-loader absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-10';
+                loaderDiv.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                        <p class="mt-2 text-gray-700 font-semibold">Uploading image...</p>
+                    </div>
+                `;
+                imageBox.appendChild(loaderDiv);
+            } else {
+                loaderDiv.style.display = 'flex';
+            }
 
             const formData = new FormData();
             formData.append('image', file);
@@ -195,7 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(result.message || 'Upload failed');
             }
 
-            loadingDiv.remove();
+            imagePreview.onload = () => {
+                loaderDiv.style.display = 'none';
+            };
             imagePreview.src = result.data.url;
             imagePreview.dataset.imgbbUrl = result.data.url;
             imagePreview.dataset.deleteUrl = result.data.delete_url;
@@ -215,6 +224,10 @@ document.addEventListener('DOMContentLoaded', function() {
             formState.isCapture = false;
             updateSubmitButton();
             showError('Failed to upload image');
+            // Hide loader if error
+            const imageBox = imagePreview.parentElement;
+            let loaderDiv = imageBox.querySelector('.image-upload-loader');
+            if (loaderDiv) loaderDiv.style.display = 'none';
         }
     }
 

@@ -340,17 +340,22 @@ document.addEventListener('DOMContentLoaded', function () {
             previewContainer.classList.remove('hidden');
             imagePreview.src = ''; // Clear existing preview
 
-            // Add loading indicator
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className =
-                'absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75';
-            loadingDiv.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                    <p class="mt-2 text-gray-700 font-semibold">Uploading image...</p>
-                </div>
-            `;
-            previewContainer.appendChild(loadingDiv);
+            // Loader inside the image box
+            const imageBox = imagePreview.parentElement;
+            let loaderDiv = imageBox.querySelector('.image-upload-loader');
+            if (!loaderDiv) {
+                loaderDiv = document.createElement('div');
+                loaderDiv.className = 'image-upload-loader absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-10';
+                loaderDiv.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                        <p class="mt-2 text-gray-700 font-semibold">Uploading image...</p>
+                    </div>
+                `;
+                imageBox.appendChild(loaderDiv);
+            } else {
+                loaderDiv.style.display = 'flex';
+            }
 
             // Create form data
             const formData = new FormData();
@@ -368,10 +373,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 throw new Error(result.message || 'Upload failed');
             }
 
-            // Remove loading indicator
-            loadingDiv.remove();
-
             // Show preview and store URL
+            imagePreview.onload = () => {
+                loaderDiv.style.display = 'none';
+            };
             imagePreview.src = result.data.url;
             imagePreview.dataset.imgbbUrl = result.data.url;
             imagePreview.dataset.deleteUrl = result.data.delete_url;
@@ -384,6 +389,9 @@ document.addEventListener('DOMContentLoaded', function () {
             formState.hasImage = false;
             formState.isCapture = false;
             // Show error state
+            const imageBox = imagePreview.parentElement;
+            let loaderDiv = imageBox.querySelector('.image-upload-loader');
+            if (loaderDiv) loaderDiv.style.display = 'none';
             const errorDiv = document.createElement('div');
             errorDiv.className =
                 'absolute inset-0 flex items-center justify-center bg-red-100 bg-opacity-75';
@@ -395,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <p class="mt-2 font-semibold">Failed to upload image</p>
                 </div>
             `;
-            previewContainer.appendChild(errorDiv);
+            imageBox.appendChild(errorDiv);
 
             // Remove error message after 3 seconds
             setTimeout(() => {
