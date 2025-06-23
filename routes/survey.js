@@ -159,6 +159,23 @@ publicRouter.delete('/surveys/delete/:id', userAuth, async (req, res) => {
     }
 });
 
+// Public endpoint to submit a report
+publicRouter.post('/report-distress', async (req, res) => {
+    try {
+        const { pointId, reason, message } = req.body;
+        if (!pointId || !reason) {
+            return res.status(400).json({ success: false, message: 'Missing required fields.' });
+        }
+        const { error } = await supabase
+            .from('reports')
+            .insert([{ point_id: pointId, reason, message, status: 'open' }]);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 // Admin routes for survey management
 adminRouter.get('/survey-dashboard', async (req, res) => {
     try {
@@ -249,6 +266,42 @@ adminRouter.delete('/surveys/delete/:id', async (req, res) => {
             success: false,
             message: error.message || 'Failed to delete survey'
         });
+    }
+});
+
+// Admin: view all reports
+adminRouter.get('/reports', async (req, res) => {
+    try {
+        const { data: reports, error } = await supabase
+            .from('reports')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        res.render('admin/reports', { reports, adminEmail: req.session.adminEmail });
+    } catch (error) {
+        res.status(500).render('error', { message: error.message });
+    }
+});
+
+// Admin: resolve a report
+adminRouter.patch('/reports/:id/resolve', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { resolution_note } = req.body;
+        const resolved_by = req.session.adminEmail;
+        const { error } = await supabase
+            .from('reports')
+            .update({
+                status: 'resolved',
+                resolved_at: new Date().toISOString(),
+                resolved_by,
+                resolution_note
+            })
+            .eq('id', id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 

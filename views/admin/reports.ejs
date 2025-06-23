@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Reports - Road Lens</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <%- include('../partials/navbar') %>
+  <div class="max-w-5xl mx-auto py-8">
+    <h1 class="text-2xl font-bold mb-6">Distress Point Reports</h1>
+    <table class="min-w-full bg-white rounded-lg shadow">
+      <thead>
+        <tr>
+          <th class="px-4 py-2">ID</th>
+          <th class="px-4 py-2">Point ID</th>
+          <th class="px-4 py-2">Reason</th>
+          <th class="px-4 py-2">Message</th>
+          <th class="px-4 py-2">Status</th>
+          <th class="px-4 py-2">Created At</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% reports.forEach(report => { %>
+          <tr>
+            <td class="border px-4 py-2"><%= report.id %></td>
+            <td class="border px-4 py-2"><%= report.point_id %></td>
+            <td class="border px-4 py-2"><%= report.reason %></td>
+            <td class="border px-4 py-2"><%= report.message %></td>
+            <td class="border px-4 py-2"><%= report.status %></td>
+            <td class="border px-4 py-2"><%= new Date(report.created_at).toLocaleString() %></td>
+            <td class="border px-4 py-2">
+              <% if (report.status === 'open') { %>
+                <button class="resolve-btn bg-green-600 text-white px-3 py-1 rounded" data-id="<%= report.id %>">Resolve</button>
+              <% } else { %>
+                <span class="text-gray-500">Resolved</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    document.querySelectorAll('.resolve-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        Swal.fire({
+          title: 'Resolve Report',
+          input: 'textarea',
+          inputLabel: 'Resolution Note',
+          inputPlaceholder: 'Describe how you resolved this...',
+          showCancelButton: true,
+          confirmButtonText: 'Resolve'
+        }).then(result => {
+          if (result.isConfirmed) {
+            fetch(`/admin/reports/${id}/resolve`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ resolution_note: result.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                Swal.fire('Resolved!', 'The report has been marked as resolved.', 'success').then(() => {
+                  window.location.reload();
+                });
+              } else {
+                Swal.fire('Error', data.message || 'Failed to resolve report.', 'error');
+              }
+            });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html> 

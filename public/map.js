@@ -114,10 +114,21 @@ function createMarker(point) {
         `
             : ""
         }
+        <button class="report-distress-btn" data-point-id="${point.id || point.ID || point.id_point || `${point.latitude_y},${point.longitude_x}`}" style="margin-top:10px; width:100%; background:#ef4444; color:white; border:none; border-radius:6px; padding:8px 0; font-weight:bold; cursor:pointer;">Report</button>
         </div>
     `;
 
   marker.bindPopup(popupContent);
+  marker.on('popupopen', function(e) {
+    const btn = document.querySelector('.report-distress-btn');
+    if (btn) {
+      btn.onclick = function(ev) {
+        ev.stopPropagation();
+        const pointId = btn.getAttribute('data-point-id');
+        showReportDistressPrompt(pointId);
+      };
+    }
+  });
   return marker;
 }
 
@@ -298,3 +309,76 @@ function initializeMapControls() {
 
 // Export functions for use in the template
 window.updateMap = updateMap;
+
+// Add SweetAlert2 logic for reporting
+function showReportDistressPrompt(pointId) {
+  if (typeof Swal === 'undefined') {
+    alert('Reporting is temporarily unavailable.');
+    return;
+  }
+  Swal.fire({
+    title: 'Report Distress Point',
+    html: `
+      <label for="report-reason" class="block text-left mb-2 font-medium">What is wrong with this distress point?</label>
+      <select id="report-reason" class="swal2-input" style="width:100%;">
+        <option value="">Select a reason</option>
+        <option value="Wrong location">Wrong location</option>
+        <option value="Wrong severity">Wrong severity</option>
+        <option value="Duplicate">Duplicate</option>
+        <option value="Wrong information">Wrong information</option>
+        <option value="Other">Other</option>
+      </select>
+      <textarea id="report-message" class="swal2-textarea" style="display:none; margin-top:10px;" placeholder="Describe the issue..."></textarea>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Submit Report',
+    preConfirm: () => {
+      const reason = document.getElementById('report-reason').value;
+      const message = document.getElementById('report-message').value;
+      if (!reason) {
+        Swal.showValidationMessage('Please select a reason.');
+        return false;
+      }
+      if (reason === 'Other' && !message.trim()) {
+        Swal.showValidationMessage('Please describe the issue.');
+        return false;
+      }
+      return { reason, message };
+    },
+    didOpen: () => {
+      const reasonSelect = document.getElementById('report-reason');
+      const messageBox = document.getElementById('report-message');
+      reasonSelect.addEventListener('change', function() {
+        if (this.value === 'Other') {
+          messageBox.style.display = 'block';
+        } else {
+          messageBox.style.display = 'none';
+        }
+      });
+    }
+  }).then(result => {
+    if (result.isConfirmed && result.value) {
+      // Send report to backend
+      fetch('/report-distress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pointId,
+          reason: result.value.reason,
+          message: result.value.message
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Thank you!', 'Your report has been submitted.', 'success');
+        } else {
+          Swal.fire('Error', data.message || 'Failed to submit report.', 'error');
+        }
+      })
+      .catch(() => {
+        Swal.fire('Error', 'Failed to submit report.', 'error');
+      });
+    }
+  });
+}
