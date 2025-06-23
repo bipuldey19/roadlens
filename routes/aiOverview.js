@@ -72,11 +72,16 @@ router.post("/recommendations", async (req, res) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'google/gemma-3-27b-it:free',
+                model: 'google/gemini-2.0-flash-exp:free',
                 messages: [{ role: 'user', content: prompt }],
                 stream: true,
             }),
         });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('OpenRouter error response:', errorText);
+        }
 
         // Set headers for SSE
         res.setHeader('Content-Type', 'text/event-stream');
