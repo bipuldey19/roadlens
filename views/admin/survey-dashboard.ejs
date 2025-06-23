@@ -1000,7 +1000,7 @@
         };
 
         try {
-            const response = await fetch('/admin/evaluation/add-manual-surveyor', {
+            const response = await fetch('/admin/add-manual-surveyor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1025,6 +1025,8 @@
                 });
             }
         } catch (error) {
+            console.error('Add surveyor error:', error);
+            console.error('Request body:', formData);
             Toast.fire({
                 icon: 'error',
                 title: 'Failed to add surveyor'
