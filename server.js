@@ -55,6 +55,11 @@ app.use('/admin', auth, surveyRouter.adminRoutes);
 const aiOverviewRouter = require('./routes/aiOverview');
 app.use('/', aiOverviewRouter);
 
+// Add feedback routes
+const feedbackRouter = require('./routes/feedback');
+app.use('/', feedbackRouter.publicRoutes);
+app.use('/admin', auth, feedbackRouter.adminRoutes);
+
 // Survey page route (requires user auth)
 app.get("/survey", async (req, res) => {
     if (!req.session.userId) {

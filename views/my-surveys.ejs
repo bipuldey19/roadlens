@@ -559,5 +559,18 @@
             </div>
         </div>
     </div>
+
+    <% if (!hasFeedback) { %>
+    <!-- Floating Feedback Button -->
+    <a href="/feedback" id="feedback-float-btn"
+       class="fixed z-[9999] bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-full shadow-lg flex items-center space-x-2 transition-all duration-200"
+       style="box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8zm-9 4h.01" />
+        </svg>
+        <span>Feedback</span>
+    </a>
+    <!-- End Floating Feedback Button -->
+    <% } %>
 </body>
 </html> 

@@ -34,10 +34,19 @@ publicRouter.get('/my-surveys', userAuth, async (req, res) => {
 
         if (surveysError) throw surveysError;
 
+        // Check if user has already submitted feedback
+        const { data: feedbackData } = await supabase
+            .from('feedback')
+            .select('id')
+            .eq('user_email', req.session.userEmail)
+            .maybeSingle();
+        const hasFeedback = !!feedbackData;
+
         res.render('my-surveys', {
             surveys,
             evaluator: surveyor.evaluator_responses,
-            userEmail: req.session.userEmail
+            userEmail: req.session.userEmail,
+            hasFeedback
         });
 
     } catch (error) {

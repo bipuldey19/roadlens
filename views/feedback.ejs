@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - RoadLens</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100">
+    <%- include('partials/navbar') %>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="rounded-lg shadow p-6">
+            <% var showToastSafe = typeof showToast !== 'undefined' ? showToast : false; %>
+            <% if (hasFeedback && showToastSafe) { %>
+                <div class="flex flex-col items-center justify-center min-h-[50vh]">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
+                    <p class="text-gray-600 mt-4 text-lg">Redirecting to My Surveys...</p>
+                </div>
+
+                <script>
+                  Swal.fire({
+                      toast: true,
+                      position: 'top-end',
+                      icon: '<%= toastType || 'info' %>',
+                      title: '<%= toastMsg %>',
+                      showConfirmButton: false,
+                      timer: 2000,
+                      timerProgressBar: true,
+                      didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                      },
+                      didClose: () => { window.location.href = '/my-surveys'; }
+                  });
+                  setTimeout(function() { window.location.href = '/my-surveys'; }, 2000);
+                </script>
+            <% } else { %>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">RoadLens Project: Participant Feedback</h2>
+                <p class="text-sm text-gray-600 mb-6">Thank you for your invaluable contribution to the RoadLens project. Your feedback is crucial for improving the platform. Please answer the following questions honestly.</p>
+                <form action="/feedback" method="POST" class="space-y-6">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">1. Overall, how would you rate your experience using the RoadLens platform?</label>
+                        <div class="flex flex-col gap-2 text-sm">
+                            <label><input type="radio" name="q1" value="Very Satisfied" required> Very Satisfied</label>
+                            <label><input type="radio" name="q1" value="Satisfied"> Satisfied</label>
+                            <label><input type="radio" name="q1" value="Neutral"> Neutral</label>
+                            <label><input type="radio" name="q1" value="Dissatisfied"> Dissatisfied</label>
+                            <label><input type="radio" name="q1" value="Very Dissatisfied"> Very Dissatisfied</label>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">2. How easy or difficult did you find the following tasks to complete?</label>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-xs md:text-sm border">
+                                <thead>
+                                    <tr>
+                                        <th class="px-2 py-1 border"></th>
+                                        <th class="px-2 py-1 border">Very Easy</th>
+                                        <th class="px-2 py-1 border">Easy</th>
+                                        <th class="px-2 py-1 border">Neutral</th>
+                                        <th class="px-2 py-1 border">Difficult</th>
+                                        <th class="px-2 py-1 border">Very Difficult</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% const tasks = [
+                                        'Initial Surveyor Evaluation Test',
+                                        'Finding and Identifying Road Distress',
+                                        'Filling out the Distress Point Survey Form',
+                                        'Capturing and Uploading an Image',
+                                        'Viewing Your Submissions on the Dashboard'
+                                    ]; %>
+                                    <% tasks.forEach(function(task, idx) { %>
+                                    <tr>
+                                        <td class="px-2 py-1 border font-medium text-gray-700"><%= task %></td>
+                                        <% ['Very Easy','Easy','Neutral','Difficult','Very Difficult'].forEach(function(opt) { %>
+                                        <td class="px-2 py-1 border text-center">
+                                            <input type="radio" name="q2_<%= idx %>" value="<%= opt %>" required>
+                                        </td>
+                                        <% }); %>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">3. The initial "Surveyor Evaluation" included a knowledge test and a field test. Did you find this process helpful for understanding your data collection tasks?</label>
+                        <div class="flex flex-col gap-2 mb-2 text-sm">
+                            <label><input type="radio" name="q3" value="Very helpful" required> Yes, it was very helpful and prepared me well.</label>
+                            <label><input type="radio" name="q3" value="Somewhat helpful"> Yes, it was somewhat helpful.</label>
+                            <label><input type="radio" name="q3" value="Unnecessary"> No, it felt unnecessary.</label>
+                            <label><input type="radio" name="q3" value="Confusing"> No, it was confusing or difficult to complete.</label>
+                        </div>
+                        <input type="text" name="q3_explain" class="w-full border rounded px-3 py-2 mt-1 text-sm" placeholder="Please briefly explain your answer...">
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">4. What was the BIGGEST challenge or frustration you faced while using the RoadLens platform in the field?</label>
+                        <textarea name="q4" class="w-full border rounded px-3 py-2 text-sm" rows="2" required></textarea>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">5. Which feature of the RoadLens platform did you find MOST valuable or engaging?</label>
+                        <div class="flex flex-col gap-2 mb-2 text-sm">
+                            <label><input type="radio" name="q5" value="Interactive map"> The interactive map with distress filters (heatmaps, clustering)</label>
+                            <label><input type="radio" name="q5" value="My Surveys dashboard"> The personal "My Surveys" dashboard to track my contributions</label>
+                            <label><input type="radio" name="q5" value="Top Contributors"> The "Top Contributors" section and the achievement badges (gamification)</label>
+                            <label><input type="radio" name="q5" value="Survey form"> The simple, dropdown-based survey form</label>
+                            <label class="flex items-center"><input type="radio" name="q5" value="Other"> <span class="ml-2">Other (please specify):</span> <input type="text" name="q5_other" class="ml-2 border rounded px-2 py-1 flex-1 text-sm"></label>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">6. Thinking about the survey form itself, were there any data fields that were confusing, or do you have suggestions for new fields to add?</label>
+                        <textarea name="q6" class="w-full border rounded px-3 py-2 text-sm" rows="2"></textarea>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">7. How practical do you believe a platform like RoadLens is for improving road maintenance in Rajshahi City?</label>
+                        <div class="flex flex-col gap-2 text-sm">
+                            <label><input type="radio" name="q7" value="Very Practical" required> Very Practical</label>
+                            <label><input type="radio" name="q7" value="Practical"> Practical</label>
+                            <label><input type="radio" name="q7" value="Somewhat Practical"> Somewhat Practical</label>
+                            <label><input type="radio" name="q7" value="Not very Practical"> Not very Practical</label>
+                            <label><input type="radio" name="q7" value="Impractical"> Impractical</label>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">8. What was your primary motivation for contributing data to the platform?</label>
+                        <div class="flex flex-col gap-2 mb-2 text-sm">
+                            <label><input type="radio" name="q8" value="Help city" required> A desire to help improve my city's infrastructure.</label>
+                            <label><input type="radio" name="q8" value="Interest"> Interest in the technology and the research project.</label>
+                            <label><input type="radio" name="q8" value="Competition"> The competitive aspect (seeing my name in the Top Contributors).</label>
+                            <label><input type="radio" name="q8" value="Requirement"> As a requirement for my studies/volunteer work.</label>
+                            <label class="flex items-center"><input type="radio" name="q8" value="Other"> <span class="ml-2">Other (please specify):</span> <input type="text" name="q8_other" class="ml-2 border rounded px-2 py-1 flex-1 text-sm"></label>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">9. If you could add ONE new feature or make ONE major improvement to RoadLens, what would it be?</label>
+                        <textarea name="q9" class="w-full border rounded px-3 py-2 text-sm" rows="2"></textarea>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <label class="block font-semibold mb-2 text-gray-800">10. How likely are you to recommend participating in a project like RoadLens to a friend or colleague?</label>
+                        <div class="flex justify-between items-center px-1 text-gray-600 text-sm mt-2">
+                           <span>Not at all Likely</span>
+                           <span>Extremely Likely</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-1 mt-1">
+                            <% for (let i = 0; i <= 10; i++) { %>
+                                <label class="flex flex-col items-center text-xs p-1 rounded-md hover:bg-gray-200 cursor-pointer">
+                                    <input type="radio" name="q10" value="<%= i %>" required class="accent-blue-600">
+                                    <span class="mt-1"><%= i %></span>
+                                </label>
+                            <% } %>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg mt-4">Submit Feedback</button>
+                </form>
+            <% } %>
+        </div>
+    </div>
+    <% if (typeof showToast !== 'undefined' && showToast && toastMsg) { %>
+    <script>
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: '<%= toastType || 'info' %>',
+        title: '<%= toastMsg %>',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+      });
+    </script>
+    <% } %>
+</body>
+</html>

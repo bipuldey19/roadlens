@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Details - RoadLens Admin</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <%- include('../partials/navbar') %>
+    <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Feedback Information</h2>
+            <p class="text-sm text-gray-600 mb-4">Participant details and submission date</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-600">Email: <span class="font-semibold text-gray-900"><%= feedback.user_email %></span></p>
+                </div>
+                <div>
+                    <p class="text-gray-600">Date: <span class="font-semibold text-gray-900"><%= feedback.submitted_at ? new Date(feedback.submitted_at).toLocaleString() : '' %></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Feedback Answers</h2>
+            <div class="divide-y divide-gray-200">
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">1. Overall, how would you rate your experience using the RoadLens platform?</p>
+                    <p class="text-base text-gray-900 mt-2">
+                        <span class="inline-block bg-blue-100 text-blue-800 font-semibold px-3 py-1 rounded-full text-sm"><%= feedback.q1 %></span>
+                    </p>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">2. How easy or difficult did you find the following tasks to complete?</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 mt-3 text-sm">
+                        <% const tasks = [
+                            { label: 'Initial Surveyor Evaluation Test', value: feedback.q2_0 },
+                            { label: 'Finding and Identifying Road Distress', value: feedback.q2_1 },
+                            { label: 'Filling out the Distress Point Survey Form', value: feedback.q2_2 },
+                            { label: 'Capturing and Uploading an Image', value: feedback.q2_3 },
+                            { label: 'Viewing Your Submissions on the Dashboard', value: feedback.q2_4 }
+                        ]; %>
+                        <% tasks.forEach(task => { %>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600"><%= task.label %>:</span>
+                            <span class="inline-block bg-gray-100 text-gray-800 font-semibold px-3 py-1 rounded-full"><%= task.value %></span>
+                        </div>
+                        <% }); %>
+                    </div>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">3. The initial "Surveyor Evaluation" included a knowledge test and a field test. Did you find this process helpful for understanding your data collection tasks?</p>
+                    <p class="text-base text-gray-900 mt-2 font-medium"><%= feedback.q3 %></p>
+                    <% if (feedback.q3_explain) { %>
+                    <blockquote class="mt-2 pl-3 border-l-4 border-gray-200 text-sm text-gray-600 italic">
+                        <%= feedback.q3_explain %>
+                    </blockquote>
+                    <% } %>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">4. What was the BIGGEST challenge or frustration you faced while using the RoadLens platform in the field?</p>
+                    <blockquote class="mt-2 pl-3 border-l-4 border-gray-200 text-base text-gray-800 italic">
+                        <%= feedback.q4 %>
+                    </blockquote>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">5. Which feature of the RoadLens platform did you find MOST valuable or engaging?</p>
+                    <p class="text-base text-gray-900 mt-2 font-medium"><%= feedback.q5 %></p>
+                    <% if (feedback.q5_other) { %>
+                    <blockquote class="mt-2 pl-3 border-l-4 border-gray-200 text-sm text-gray-600 italic">
+                       Other: <%= feedback.q5_other %>
+                    </blockquote>
+                    <% } %>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">6. Thinking about the survey form itself, were there any data fields that were confusing, or do you have suggestions for new fields to add?</p>
+                    <blockquote class="mt-2 pl-3 border-l-4 border-gray-200 text-base text-gray-800 italic">
+                        <%= feedback.q6 || 'No answer provided.' %>
+                    </blockquote>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">7. How practical do you believe a platform like RoadLens is for improving road maintenance in Rajshahi City?</p>
+                    <p class="text-base text-gray-900 mt-2">
+                        <span class="inline-block bg-green-100 text-green-800 font-semibold px-3 py-1 rounded-full text-sm"><%= feedback.q7 %></span>
+                    </p>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">8. What was your primary motivation for contributing data to the platform?</p>
+                    <p class="text-base text-gray-900 mt-2 font-medium"><%= feedback.q8 %></p>
+                     <% if (feedback.q8_other) { %>
+                    <blockquote class="mt-2 pl-3 border-l-4 border-gray-200 text-sm text-gray-600 italic">
+                       Other: <%= feedback.q8_other %>
+                    </blockquote>
+                    <% } %>
+                </div>
+
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">9. If you could add ONE new feature or make ONE major improvement to RoadLens, what would it be?</p>
+                    <blockquote class="mt-2 pl-3 border-l-4 border-gray-200 text-base text-gray-800 italic">
+                        <%= feedback.q9 || 'No answer provided.' %>
+                    </blockquote>
+                </div>
+                
+                <div class="py-5">
+                    <p class="font-semibold text-gray-700">10. How likely are you to recommend participating in a project like RoadLens to a friend or colleague?</p>
+                    <p class="text-base text-gray-900 mt-2">
+                        <span class="inline-block bg-purple-100 text-purple-800 font-bold px-3 py-1 rounded-full text-sm"><%= feedback.q10 %> / 10</span>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <button onclick="window.history.back()" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <span>Back</span>
+            </button>
+        </div>
+    </div>
+    <%- include('../partials/footer') %>
+</body>
+</html>
