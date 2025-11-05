@@ -29,10 +29,7 @@ services:
     command: npm start
     networks:
       - default
-      - nginx-proxy-manager_default
 
 networks:
   default:
     driver: bridge
-  nginx-proxy-manager_default:
-    external: true 
